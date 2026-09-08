@@ -13,19 +13,38 @@ crash the plug-in.
 
 import threading
 
-import gi
-gi.require_version("Gimp", "3.0")
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gimp, Gtk, Gdk, GLib, Pango
+try:
+    import gi
+    try:
+        gi.require_version("Gimp", "3.0")
+        gi.require_version("Gtk", "3.0")
+    except (ValueError, AttributeError):
+        pass
+    from gi.repository import Gimp, Gtk, Gdk, GLib, Pango
+    _HAS_GTK = True
+except Exception:
+    _HAS_GTK = False
+    Gimp = None
+    Gtk = None
+    Gdk = None
+    GLib = None
+    Pango = None
 
-import executor
-import planner
-from ollama_client import list_models, DEFAULT_HOST
+try:
+    import executor
+    import planner
+    from ollama_client import list_models, DEFAULT_HOST
+except ImportError:
+    from . import executor
+    from . import planner
+    from .ollama_client import list_models, DEFAULT_HOST
 
 PREFERRED = ["qwen3-coder", "qwen2.5-coder", "deepseek-r1", "phi4-mini"]
 
+_BaseWindow = Gtk.Window if Gtk is not None and hasattr(Gtk, "Window") else object
 
-class LLMPanel(Gtk.Window):
+
+class LLMPanel(_BaseWindow):
 
     def __init__(self, image):
         super().__init__(title="AI Editor")

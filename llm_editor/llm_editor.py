@@ -15,16 +15,29 @@ import sys
 # would not import without this.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import gi
-gi.require_version("Gimp", "3.0")
-gi.require_version("GimpUi", "3.0")
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gimp, GimpUi, Gtk, GLib  # noqa: E402
+try:
+    import gi
+    try:
+        gi.require_version("Gimp", "3.0")
+        gi.require_version("GimpUi", "3.0")
+        gi.require_version("Gtk", "3.0")
+    except (ValueError, AttributeError):
+        pass
+    from gi.repository import Gimp, GimpUi, Gtk, GLib  # noqa: E402
+    _HAS_GIMP = True
+except Exception:
+    _HAS_GIMP = False
+    Gimp = None
+    GimpUi = None
+    Gtk = None
+    GLib = None
 
 PROC_NAME = "kanak-ai-editor"
 
+_BasePlugin = Gimp.PlugIn if Gimp is not None and hasattr(Gimp, "PlugIn") else object
 
-class AIEditor(Gimp.PlugIn):
+
+class AIEditor(_BasePlugin):
 
     def do_query_procedures(self):
         return [PROC_NAME]
@@ -67,4 +80,9 @@ class AIEditor(Gimp.PlugIn):
         )
 
 
-Gimp.main(AIEditor.__gtype__, sys.argv)
+if __name__ == "__main__":
+    if Gimp is not None and hasattr(Gimp, "main"):
+        try:
+            Gimp.main(AIEditor.__gtype__, sys.argv)
+        except Exception as e:
+            print(f"Notice: GIMP plug-in entry point must be launched by GIMP 3.0: {e}")

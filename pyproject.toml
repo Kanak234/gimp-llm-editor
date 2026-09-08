@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gimp-llm-editor"
+version = "1.0.0"
+description = "AI image editing plugin for GIMP 3.0 driven by local LLMs"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = []
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "Pillow"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "llm_editor"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning"
+]

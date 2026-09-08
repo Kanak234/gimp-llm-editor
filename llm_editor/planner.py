@@ -6,9 +6,14 @@ code. If it returns something the catalog rejects, it gets one chance to
 fix it with the error handed back to it.
 """
 
-from catalog import describe_for_model
-from executor import available_ops, validate, StepError
-from ollama_client import chat_json
+try:
+    from catalog import describe_for_model
+    from executor import available_ops, validate, StepError
+    from ollama_client import chat_json
+except ImportError:
+    from .catalog import describe_for_model
+    from .executor import available_ops, validate, StepError
+    from .ollama_client import chat_json
 
 SYSTEM = """You drive a photo editor. You are given a list of operations \
 and the user's instruction. You reply with a plan and nothing else.

@@ -16,12 +16,26 @@ import subprocess
 import tempfile
 import time
 
-import gi
-gi.require_version("Gimp", "3.0")
-gi.require_version("Gegl", "0.4")
-from gi.repository import Gimp, Gegl, Gio, GLib
+try:
+    import gi
+    try:
+        gi.require_version("Gimp", "3.0")
+        gi.require_version("Gegl", "0.4")
+    except (ValueError, AttributeError):
+        pass
+    from gi.repository import Gimp, Gegl, Gio, GLib
+    _HAS_GIMP = True
+except Exception:
+    _HAS_GIMP = False
+    Gimp = None
+    Gegl = None
+    Gio = None
+    GLib = None
 
-from catalog import OPS
+try:
+    from catalog import OPS
+except ImportError:
+    from .catalog import OPS
 
 
 class StepError(Exception):
@@ -37,7 +51,12 @@ def _gegl_ops():
     global _gegl_ops_cache
     if _gegl_ops_cache is None:
         try:
-            _gegl_ops_cache = set(Gegl.list_operations())
+            if Gegl is not None and hasattr(Gegl, "init"):
+                try:
+                    Gegl.init(None)
+                except Exception:
+                    pass
+            _gegl_ops_cache = set(Gegl.list_operations()) if Gegl is not None else set()
         except Exception:
             _gegl_ops_cache = set()
     return _gegl_ops_cache
